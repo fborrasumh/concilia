@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ConcilIA · Consejo de Consciencia</title>
+<meta name="description" content="Deliberación multiperspectiva con 12 arquetipos de pensamiento. Reproduce el skill consciousness-council con la API de OpenAI (gpt-4o-mini) y evidencia web opcional vía Tavily.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --chamber:#E9EDE7;
+  --surface:#FBFCFA;
+  --surface-2:#F3F6F1;
+  --ink:#12242F;
+  --ink-2:#4A5C66;
+  --ink-3:#7B8B93;
+  --brass:#A8813C;
+  --brass-soft:#E4D3AE;
+  --carmin:#9E3546;
+  --verde:#2C6F5D;
+  --line:rgba(18,36,47,.14);
+  --line-2:rgba(18,36,47,.07);
+  --shadow:0 1px 2px rgba(18,36,47,.05), 0 12px 28px -18px rgba(18,36,47,.35);
+  --display:"Bricolage Grotesque",system-ui,sans-serif;
+  --body:"Newsreader",Georgia,serif;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--chamber);
+  color:var(--ink);
+  font-family:var(--body);
+  font-size:17px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{font-family:var(--display);font-weight:700;letter-spacing:-.02em;line-height:1.1;margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--ink);text-underline-offset:3px}
+
+.eyebrow{
+  font-family:var(--mono);font-size:.66rem;font-weight:600;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);
+}
+
+/* ---------- masthead ---------- */
+.masthead{
+  border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,#F4F7F2,rgba(244,247,242,0));
+}
+.masthead-in{
+  max-width:1220px;margin:0 auto;padding:20px 22px 18px;
+  display:flex;align-items:flex-end;gap:18px;flex-wrap:wrap;
+}
+.wordmark{font-family:var(--display);font-weight:800;font-size:1.85rem;letter-spacing:-.035em}
+.wordmark span{color:var(--brass)}
+.masthead p{margin:0;color:var(--ink-2);font-size:.95rem;max-width:46ch}
+.masthead-actions{margin-left:auto;display:flex;gap:8px}
+
+/* ---------- layout ---------- */
+.layout{
+  max-width:1220px;margin:0 auto;padding:26px 22px 90px;
+  display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:30px;align-items:start;
+}
+@media (max-width:940px){ .layout{grid-template-columns:1fr;gap:22px} }
+
+.chamber-col{position:sticky;top:18px}
+@media (max-width:940px){ .chamber-col{position:static} }
+
+/* ---------- cards ---------- */
+.card{
+  background:var(--surface);border:1px solid var(--line);border-radius:3px;
+  box-shadow:var(--shadow);padding:20px;
+}
+.card + .card{margin-top:18px}
+.card-head{display:flex;align-items:baseline;gap:10px;margin-bottom:14px}
+.card-head h2{font-size:1.05rem}
+
+/* ---------- la mesa (signature) ---------- */
+.mesa-wrap{background:var(--surface);border:1px solid var(--line);border-radius:3px;box-shadow:var(--shadow);padding:14px 14px 6px}
+#mesa{width:100%;height:auto;display:block}
+.seat-ring{fill:none;stroke:var(--line);stroke-width:1}
+.seat circle{fill:var(--surface-2);stroke:var(--line);stroke-width:1.4;transition:fill .35s,stroke .35s,r .35s}
+.seat text{font-family:var(--mono);font-size:7.5px;font-weight:600;letter-spacing:.08em;fill:var(--ink-3);transition:fill .35s}
+.seat.dim{opacity:.22}
+.seat.on circle{fill:#fff;stroke:var(--brass);stroke-width:2}
+.seat.on text{fill:var(--ink-2)}
+.seat.busy circle{fill:var(--brass-soft);stroke:var(--brass);stroke-width:2}
+.seat.busy{animation:pulse 1.4s ease-in-out infinite}
+.seat.done circle{fill:var(--brass);stroke:var(--brass)}
+.seat.done text{fill:var(--ink)}
+.seat .sigil{font-size:8px;fill:var(--ink-2)}
+.seat.done .sigil{fill:#fff}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+@media (prefers-reduced-motion:reduce){ .seat.busy{animation:none} }
+.chord{stroke-width:1.2;fill:none;opacity:0}
+.chord.show{opacity:.75;transition:opacity .8s ease}
+.chord.tension{stroke:var(--carmin);stroke-dasharray:3 3}
+.chord.acuerdo{stroke:var(--verde)}
+.mesa-center{font-family:var(--mono);font-size:7px;letter-spacing:.14em;fill:var(--ink-3);text-anchor:middle}
+.mesa-center.big{font-family:var(--display);font-size:13px;letter-spacing:-.01em;fill:var(--ink)}
+.leyenda{display:flex;gap:14px;flex-wrap:wrap;padding:8px 4px 6px;font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.leyenda i{display:inline-block;width:14px;height:0;border-top:1.5px solid;margin-right:5px;vertical-align:middle}
+.leyenda .t i{border-color:var(--carmin);border-top-style:dashed}
+.leyenda .a i{border-color:var(--verde)}
+
+/* ---------- registro ---------- */
+#registro{margin-top:14px;max-height:180px;overflow:auto;font-family:var(--mono);font-size:.72rem;line-height:1.7;color:var(--ink-2)}
+#registro div{border-bottom:1px solid var(--line-2);padding:3px 0;display:flex;gap:8px}
+#registro time{color:var(--ink-3);flex:none}
+#registro .err{color:var(--carmin)}
+
+/* ---------- consola ---------- */
+label.field{display:block;margin-bottom:14px}
+label.field > span{display:block;margin-bottom:5px}
+textarea,input[type=text],input[type=password],select{
+  width:100%;padding:10px 12px;background:#fff;border:1px solid var(--line);
+  border-radius:2px;font-family:var(--body);font-size:1rem;
+}
+textarea{min-height:110px;resize:vertical;line-height:1.5}
+select{font-family:var(--mono);font-size:.82rem}
+:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.row > *{flex:1 1 160px}
+
+.toggles{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:6px 16px;margin:4px 0 16px}
+.tg{display:flex;gap:9px;align-items:flex-start;font-size:.9rem;color:var(--ink-2);cursor:pointer;padding:3px 0}
+.tg input{margin:4px 0 0;accent-color:var(--brass);flex:none}
+.tg b{color:var(--ink);font-weight:600;font-family:var(--body)}
+
+button.primary{
+  background:var(--ink);color:#F6F8F4;border:1px solid var(--ink);
+  padding:12px 22px;border-radius:2px;cursor:pointer;
+  font-family:var(--mono);font-size:.78rem;font-weight:600;letter-spacing:.13em;text-transform:uppercase;
+}
+button.primary:hover{background:#0A1922}
+button.primary:disabled{opacity:.45;cursor:not-allowed}
+button.ghost{
+  background:transparent;border:1px solid var(--line);padding:9px 14px;border-radius:2px;cursor:pointer;
+  font-family:var(--mono);font-size:.7rem;font-weight:500;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-2);
+}
+button.ghost:hover{border-color:var(--ink-3);color:var(--ink)}
+button.ghost.sm{padding:6px 10px;font-size:.63rem}
+
+/* ---------- arquetipos ---------- */
+.grid-arq{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-bottom:14px}
+.arq{
+  border:1px solid var(--line);border-radius:2px;padding:9px 11px;cursor:pointer;background:#fff;
+  display:block;transition:border-color .2s,background .2s;
+}
+.arq:hover{border-color:var(--ink-3)}
+.arq input{position:absolute;opacity:0;pointer-events:none}
+.arq b{font-family:var(--display);font-size:.95rem;display:block}
+.arq small{color:var(--ink-3);font-size:.78rem;display:block;line-height:1.35;margin-top:2px}
+.arq.sel{background:#FFFDF7;border-color:var(--brass);box-shadow:inset 3px 0 0 var(--brass)}
+.arq .sig{font-family:var(--mono);font-size:.6rem;letter-spacing:.12em;color:var(--brass);float:right}
+
+/* ---------- resultados ---------- */
+#salida{max-width:1220px;margin:0 auto;padding:0 22px 90px}
+.fase{margin-top:34px}
+.fase-head{display:flex;align-items:baseline;gap:12px;border-bottom:1px solid var(--ink);padding-bottom:7px;margin-bottom:18px}
+.fase-head h2{font-size:1.35rem}
+.fase-head .n{font-family:var(--mono);font-size:.7rem;color:var(--brass);letter-spacing:.14em}
+
+.miembro{
+  background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--brass);
+  border-radius:2px;padding:18px 20px;margin-bottom:14px;box-shadow:var(--shadow);
+}
+.miembro header{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.miembro header h3{font-size:1.15rem}
+.miembro header .lente{font-size:.85rem;color:var(--ink-3);font-style:italic}
+.miembro .posicion{font-size:1.06rem;font-weight:500;margin:0 0 10px;line-height:1.45}
+.bloque{margin-top:11px}
+.bloque .et{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);display:block;margin-bottom:3px}
+.bloque p{margin:0;font-size:.97rem;color:var(--ink-2)}
+.bloque.riesgo{border-left:2px solid var(--carmin);padding-left:11px}
+.bloque.riesgo .et{color:var(--carmin)}
+.bloque.insight{border-left:2px solid var(--brass);padding-left:11px}
+.bloque.insight .et{color:var(--brass)}
+.desacuerdo{
+  margin-top:12px;padding:9px 12px;background:rgba(158,53,70,.05);
+  border:1px dashed rgba(158,53,70,.35);border-radius:2px;font-size:.92rem;color:var(--ink-2);
+}
+.desacuerdo b{color:var(--carmin);font-family:var(--display);font-weight:700}
+.replica{margin-top:12px;padding:11px 13px;background:var(--surface-2);border:1px solid var(--line-2);border-radius:2px;font-size:.94rem}
+.replica .et{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);display:block;margin-bottom:4px}
+.replica p{margin:0 0 8px}
+.replica p:last-child{margin:0}
+.badge{font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border:1px solid var(--line);border-radius:2px;color:var(--ink-3)}
+.badge.cambio{border-color:var(--brass);color:var(--brass)}
+
+/* síntesis */
+.sintesis{background:var(--ink);color:#EDF1EA;border-radius:3px;padding:26px 28px;box-shadow:var(--shadow)}
+.sintesis h3{color:#fff;font-size:1.5rem;margin-bottom:4px}
+.sintesis .sub{font-family:var(--mono);font-size:.63rem;letter-spacing:.16em;text-transform:uppercase;color:var(--brass-soft)}
+.sintesis .sec{margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.14)}
+.sintesis .sec .et{font-family:var(--mono);font-size:.63rem;letter-spacing:.15em;text-transform:uppercase;color:var(--brass-soft);display:block;margin-bottom:5px}
+.sintesis p{margin:0;color:#DCE4DA;font-size:1.02rem}
+.sintesis .tension p, .sintesis .camino p{color:#fff;font-size:1.1rem}
+.sintesis .pregunta{background:rgba(255,255,255,.06);border-left:3px solid var(--brass);padding:14px 16px;margin-top:20px}
+.sintesis .pregunta p{font-size:1.12rem;color:#fff;font-style:italic}
+.confianza{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:#fff;border:1px solid rgba(255,255,255,.3);padding:4px 10px;border-radius:2px}
+.confianza i{width:8px;height:8px;border-radius:50%;background:var(--brass);display:inline-block}
+.confianza.alta i{background:#5BB58F}
+.confianza.baja i{background:#D97186}
+
+/* CQS */
+.cqs{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-top:6px}
+.met .et{font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+.met .v{font-family:var(--display);font-size:1.6rem;font-weight:800;line-height:1}
+.bar{height:4px;background:var(--surface-2);border:1px solid var(--line-2);margin-top:6px}
+.bar i{display:block;height:100%;background:var(--brass)}
+.cqs-total{border-top:1px solid var(--line);margin-top:16px;padding-top:14px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.cqs-total .v{font-family:var(--display);font-size:2.4rem;font-weight:800;line-height:1}
+.cqs-total .v.bajo{color:var(--carmin)}
+
+/* avisos */
+.aviso{border:1px solid var(--brass);background:#FFFDF6;border-radius:2px;padding:15px 17px;margin-bottom:16px}
+.aviso p{margin:0 0 10px}
+.aviso .acciones{display:flex;gap:8px;flex-wrap:wrap}
+.error{border-color:var(--carmin);background:#FFF7F8}
+.evidencia li{margin-bottom:7px;font-size:.93rem;color:var(--ink-2)}
+.evidencia a{color:var(--ink-2)}
+.evidencia .f{font-family:var(--mono);font-size:.7rem;color:var(--brass);margin-right:5px}
+
+/* barra final */
+.acciones-final{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px}
+.meta-uso{font-family:var(--mono);font-size:.66rem;letter-spacing:.08em;color:var(--ink-3);margin-top:14px}
+
+/* claves */
+dialog{border:1px solid var(--line);border-radius:3px;padding:0;max-width:540px;width:92%;box-shadow:0 30px 70px -20px rgba(18,36,47,.5)}
+dialog::backdrop{background:rgba(18,36,47,.45)}
+.dlg{padding:24px}
+.dlg h2{font-size:1.2rem;margin-bottom:6px}
+.dlg p.nota{font-size:.87rem;color:var(--ink-2);margin:0 0 16px}
+.dlg .cierre{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
+.hist{list-style:none;margin:0;padding:0;max-height:280px;overflow:auto}
+.hist li{border-bottom:1px solid var(--line-2);padding:9px 0;display:flex;gap:10px;align-items:baseline}
+.hist button{background:none;border:0;text-align:left;cursor:pointer;flex:1;padding:0;font-size:.94rem}
+.hist button:hover{color:var(--brass)}
+.hist time{font-family:var(--mono);font-size:.65rem;color:var(--ink-3);flex:none}
+
+.vacio{color:var(--ink-3);font-size:.92rem}
+@media print{
+  .chamber-col,.console-col,.masthead-actions,.acciones-final,button{display:none!important}
+  body{background:#fff}
+  .layout{display:block;padding:0}
+  .sintesis{background:#fff;color:#000;border:1px solid #000}
+  .sintesis h3,.sintesis p,.sintesis .pregunta p{color:#000}
+}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-in">
+    <div>
+      <div class="wordmark">Concil<span>IA</span></div>
+      <p>Consejo de Consciencia: doce arquetipos de pensamiento deliberan sobre tu pregunta y la fricción entre ellos se convierte en criterio.</p>
+    </div>
+    <div class="masthead-actions">
+      <button class="ghost" id="btnHistorial">Historial</button>
+      <button class="ghost" id="btnClaves">Claves API</button>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- ================= LA MESA ================= -->
+  <div class="chamber-col">
+    <div class="mesa-wrap">
+      <svg id="mesa" viewBox="0 0 400 400" role="img" aria-label="Mesa del consejo con los doce arquetipos">
+        <circle class="seat-ring" cx="200" cy="200" r="132"></circle>
+        <g id="cuerdas"></g>
+        <g id="asientos"></g>
+        <text id="mesaFase" class="mesa-center" x="200" y="188">CONSEJO EN ESPERA</text>
+        <text id="mesaEstado" class="mesa-center big" x="200" y="208">12 arquetipos</text>
+        <text id="mesaDetalle" class="mesa-center" x="200" y="224"></text>
+      </svg>
+      <div class="leyenda">
+        <span class="t"><i></i>Tensión declarada</span>
+        <span class="a"><i></i>Convergencia</span>
+      </div>
+    </div>
+    <div class="card" style="margin-top:18px">
+      <div class="card-head"><span class="eyebrow">Registro de sesión</span></div>
+      <div id="registro"><div class="vacio">Sin actividad todavía.</div></div>
+      <div class="meta-uso" id="uso"></div>
+    </div>
+  </div>
+
+  <!-- ================= CONSOLA ================= -->
+  <div class="console-col">
+    <div class="card">
+      <div class="card-head">
+        <span class="eyebrow">Fase 1 · Convocatoria</span>
+      </div>
+
+      <label class="field">
+        <span><b>La pregunta ante el consejo</b></span>
+        <textarea id="pregunta" placeholder="Ej.: ¿Debo rediseñar el trabajo fin de grado como proyecto con IA generativa, sabiendo que la mitad del claustro se opondrá?"></textarea>
+      </label>
+
+      <div class="row" style="margin-bottom:14px">
+        <label class="field" style="margin:0">
+          <span class="eyebrow">Profundidad</span>
+          <select id="modo">
+            <option value="rapido">Consejo rápido · 3 miembros</option>
+            <option value="estandar" selected>Estándar · 5 miembros</option>
+            <option value="profundo">Deliberación profunda · 6 miembros</option>
+          </select>
+        </label>
+        <label class="field" style="margin:0">
+          <span class="eyebrow">Selección</span>
+          <select id="seleccion">
+            <option value="auto" selected>Automática (según la pregunta)</option>
+            <option value="manual">Manual (elijo yo)</option>
+          </select>
+        </label>
+        <label class="field" style="margin:0">
+          <span class="eyebrow">Idioma de salida</span>
+          <select id="idioma">
+            <option value="español" selected>Español</option>
+            <option value="valencià/català">Valencià</option>
+            <option value="English">English</option>
+          </select>
+        </label>
+      </div>
+
+      <div id="panelManual" hidden>
+        <span class="eyebrow">Los doce arquetipos</span>
+        <div class="grid-arq" id="gridArq"></div>
+      </div>
+
+      <span class="eyebrow">Configuración de la deliberación</span>
+      <div class="toggles">
+        <label class="tg"><input type="checkbox" id="opRondas"><span><b>Modo rondas.</b> Réplica cruzada y posición revisada.</span></label>
+        <label class="tg"><input type="checkbox" id="opDiablo"><span><b>Abogado del diablo.</b> Todos argumentan contra lo intuitivo.</span></label>
+        <label class="tg"><input type="checkbox" id="opAnonimo"><span><b>Consejo anónimo.</b> Identidades ocultas hasta la síntesis.</span></label>
+        <label class="tg"><input type="checkbox" id="opSilencio"><span><b>Consejo silencioso.</b> Muestra solo la síntesis.</span></label>
+        <label class="tg"><input type="checkbox" id="opAfilar" checked><span><b>Afilar tensiones.</b> Rehace posiciones redundantes.</span></label>
+        <label class="tg"><input type="checkbox" id="opCQS" checked><span><b>Puntuar deliberación.</b> Calcula el CQS.</span></label>
+        <label class="tg"><input type="checkbox" id="opTavily"><span><b>Buscar evidencia.</b> Documenta la mesa con Tavily.</span></label>
+      </div>
+
+      <button class="primary" id="btnConvocar">Convocar al consejo</button>
+      <button class="ghost" id="btnDetener" hidden>Detener</button>
+    </div>
+
+    <div class="card" id="cardCustom">
+      <div class="card-head"><span class="eyebrow">Arquetipos propios</span></div>
+      <p style="margin:0 0 12px;color:var(--ink-2);font-size:.93rem">Añade una voz de tu dominio (p. ej. <em>La Reguladora</em>, <em>El Revisor 2</em>, <em>La Comisión de Ética</em>). Se guarda en este navegador y aparece en la lista manual.</p>
+      <div class="row">
+        <label class="field"><span class="eyebrow">Nombre</span><input type="text" id="cName" placeholder="La Reguladora"></label>
+        <label class="field"><span class="eyebrow">Lente</span><input type="text" id="cLente" placeholder="Cumplimiento normativo y gestión del riesgo"></label>
+      </div>
+      <div class="row">
+        <label class="field"><span class="eyebrow">Pregunta firma</span><input type="text" id="cPregunta" placeholder="¿Qué puede salir mal legalmente?"></label>
+        <label class="field"><span class="eyebrow">Punto ciego</span><input type="text" id="cCiego" placeholder="Puede matar la innovación por exceso de cautela"></label>
+      </div>
+      <button class="ghost" id="btnAddCustom">Añadir arquetipo</button>
+      <div id="listaCustom" style="margin-top:12px"></div>
+    </div>
+  </div>
+</div>
+
+<section id="salida"></section>
+
+<dialog id="dlgClaves">
+  <div class="dlg">
+    <h2>Claves de API</h2>
+    <p class="nota">Se guardan solo en el almacenamiento local de este navegador y viajan directamente a OpenAI y Tavily desde tu equipo. No pasan por ningún servidor intermedio.</p>
+    <label class="field"><span class="eyebrow">OpenAI · obligatoria</span><input type="password" id="keyOpenAI" placeholder="sk-..." autocomplete="off"></label>
+    <label class="field"><span class="eyebrow">Tavily · opcional, para evidencia web</span><input type="password" id="keyTavily" placeholder="tvly-..." autocomplete="off"></label>
+    <label class="field"><span class="eyebrow">Modelo</span><input type="text" id="modelo" placeholder="gpt-4o-mini"></label>
+    <div class="cierre">
+      <button class="ghost" id="btnBorrarClaves">Borrar claves</button>
+      <button class="primary" id="btnGuardarClaves">Guardar</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="dlgHistorial">
+  <div class="dlg">
+    <h2>Sesiones anteriores</h2>
+    <p class="nota">Guardadas en IndexedDB, en este navegador.</p>
+    <ul class="hist" id="listaHist"></ul>
+    <div class="cierre">
+      <button class="ghost" id="btnVaciarHist">Vaciar historial</button>
+      <button class="primary" id="btnCerrarHist">Cerrar</button>
+    </div>
+  </div>
+</dialog>
+
+<script>
+/* =====================================================================
+   ConcilIA — reproducción web del skill "consciousness-council"
+   (K-Dense-AI/scientific-agent-skills, commit 72d742e). MIT.
+   Motor: OpenAI Chat Completions (gpt-4o-mini) + Tavily Search opcional.
+   ===================================================================== */
+
+const $  = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+
+/* ---------- 1. Los doce arquetipos ---------- */
+const ARQUETIPOS = [
+  {id:'arquitecto', nombre:'La Arquitecta', sigla:'ARQ', estilo:'Pensamiento sistémico, la estructura primero',
+   pregunta:'¿Cuál es la estructura subyacente?', ciego:'Puede sobredimensionar problemas simples'},
+  {id:'contrario', nombre:'El Contrario', sigla:'CTR', estilo:'Inversión, abogado del diablo',
+   pregunta:'¿Y si lo contrario fuera cierto?', ciego:'Puede llevar la contraria por deporte'},
+  {id:'empirista', nombre:'La Empirista', sigla:'EMP', estilo:'Datos y evidencia antes que intuición',
+   pregunta:'¿Qué muestra realmente la evidencia?', ciego:'Puede ignorar lo que no se deja medir'},
+  {id:'etica', nombre:'La Ética', sigla:'ETI', estilo:'Valores y consecuencias sobre las personas',
+   pregunta:'¿Quién gana y quién resulta dañado?', ciego:'Puede paralizar la acción con complejidad moral'},
+  {id:'futurista', nombre:'El Futurista', sigla:'FUT', estilo:'Largo plazo y efectos de segundo orden',
+   pregunta:'¿Cómo se ve esto dentro de diez años?', ciego:'Puede menospreciar las urgencias del presente'},
+  {id:'pragmatica', nombre:'La Pragmática', sigla:'PRG', estilo:'Orientada a la acción y a los recursos reales',
+   pregunta:'¿Qué podemos hacer de verdad para el viernes?', ciego:'Puede sacrificar el largo plazo por lo inmediato'},
+  {id:'historiador', nombre:'El Historiador', sigla:'HIS', estilo:'Reconocimiento de patrones y precedentes',
+   pregunta:'¿Cuándo se intentó esto antes y cómo acabó?', ciego:'Puede librar siempre la guerra anterior'},
+  {id:'empatica', nombre:'La Empática', sigla:'EPT', estilo:'Centrada en las personas, inteligencia emocional',
+   pregunta:'¿Cómo va a sentirse la gente con esto?', ciego:'Puede priorizar la comodidad sobre el avance'},
+  {id:'forastero', nombre:'El Forastero', sigla:'FOR', estilo:'Mirada de otro dominio, preguntas ingenuas',
+   pregunta:'¿Por qué todo el mundo da eso por supuesto?', ciego:'Puede carecer de profundidad en el dominio'},
+  {id:'estratega', nombre:'La Estratega', sigla:'EST', estilo:'Teoría de juegos y dinámica competitiva',
+   pregunta:'¿Cuáles son las jugadas de segundo y tercer orden?', ciego:'Puede sobrepensar situaciones simples'},
+  {id:'minimalista', nombre:'El Minimalista', sigla:'MIN', estilo:'Simplificación, búsqueda de restricciones',
+   pregunta:'¿Qué podemos quitar?', ciego:'Puede simplificar en exceso lo complejo'},
+  {id:'creadora', nombre:'La Creadora', sigla:'CRE', estilo:'Pensamiento divergente, síntesis novedosa',
+   pregunta:'¿Qué es lo que nadie ha probado todavía?', ciego:'Puede perseguir la novedad por encima de la fiabilidad'}
+];
+
+/* Heurísticas de composición del skill + configuraciones avanzadas */
+const PLANTILLAS = {
+  negocio:      ['estratega','pragmatica','etica','futurista','contrario'],
+  tecnica:      ['arquitecto','minimalista','empirista','forastero','pragmatica'],
+  personal:     ['empatica','contrario','futurista','pragmatica'],
+  creativa:     ['creadora','forastero','historiador','minimalista','empirista'],
+  etica:        ['etica','contrario','empirista','empatica','historiador','futurista'],
+  estrategia:   ['estratega','historiador','futurista','contrario','pragmatica'],
+  startup:      ['estratega','pragmatica','contrario','futurista','empirista'],
+  personas:     ['empatica','estratega','pragmatica','etica','historiador'],
+  crisis:       ['pragmatica','estratega','empatica','contrario','arquitecto'],
+  inversion:    ['empirista','estratega','contrario','futurista','pragmatica']
+};
+
+/* ---------- 2. Estado ---------- */
+const CFG = {
+  key:  localStorage.getItem('ia_openai_key') || '',
+  tav:  localStorage.getItem('ia_tavily_key') || '',
+  model:localStorage.getItem('ia_modelo') || 'gpt-4o-mini'
+};
+let custom = JSON.parse(localStorage.getItem('concilia_custom') || '[]');
+let uso = {in:0,out:0,llamadas:0};
+let abortando = false;
+let sesion = null;
+
+const todos = () => [...ARQUETIPOS, ...custom];
+const porId = id => todos().find(a=>a.id===id);
+
+/* ---------- 3. Utilidades de interfaz ---------- */
+function log(txt, err){
+  const r = $('#registro');
+  if(r.querySelector('.vacio')) r.innerHTML='';
+  const d = document.createElement('div');
+  const t = new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  d.innerHTML = '<time>'+t+'</time><span'+(err?' class="err"':'')+'></span>';
+  d.lastChild.textContent = txt;
+  r.appendChild(d); r.scrollTop = r.scrollHeight;
+}
+function centro(fase, estado, detalle){
+  $('#mesaFase').textContent = fase;
+  $('#mesaEstado').textContent = estado;
+  $('#mesaDetalle').textContent = detalle || '';
+}
+function pintarUso(){
+  const coste = (uso.in/1e6)*0.15 + (uso.out/1e6)*0.60;
+  $('#uso').textContent = uso.llamadas
+    ? uso.llamadas+' llamadas · '+uso.in.toLocaleString('es-ES')+' tokens entrada · '+uso.out.toLocaleString('es-ES')+' salida · ≈ '+coste.toFixed(4)+' USD'
+    : '';
+}
+
+/* ---------- 4. La mesa (SVG) ---------- */
+function construirMesa(){
+  const g = $('#asientos'); g.innerHTML='';
+  const n = ARQUETIPOS.length, R = 132, cx=200, cy=200;
+  ARQUETIPOS.forEach((a,i)=>{
+    const ang = (-90 + i*360/n) * Math.PI/180;
+    const x = cx + R*Math.cos(ang), y = cy + R*Math.sin(ang);
+    const lx = cx + (R+24)*Math.cos(ang), ly = cy + (R+24)*Math.sin(ang)+2.5;
+    a._x = x; a._y = y;
+    const el = document.createElementNS('http://www.w3.org/2000/svg','g');
+    el.setAttribute('class','seat'); el.dataset.id = a.id;
+    el.innerHTML =
+      '<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="13"></circle>'+
+      '<text class="sigil" x="'+x.toFixed(1)+'" y="'+(y+3).toFixed(1)+'" text-anchor="middle">'+a.sigla+'</text>'+
+      '<text x="'+lx.toFixed(1)+'" y="'+ly.toFixed(1)+'" text-anchor="'+(Math.cos(ang)<-0.2?'end':Math.cos(ang)>0.2?'start':'middle')+'">'+a.nombre.replace(/^(La|El) /,'')+'</text>';
+    const tit = document.createElementNS('http://www.w3.org/2000/svg','title');
+    tit.textContent = a.nombre + ' — ' + a.estilo;
+    el.appendChild(tit);
+    g.appendChild(el);
+  });
+}
+const asiento = id => $('#asientos g[data-id="'+id+'"]');
+function estadoAsiento(id, clase){
+  const s = asiento(id); if(!s) return;
+  s.classList.remove('dim','on','busy','done');
+  if(clase) s.classList.add(clase);
+}
+function resetMesa(){
+  $$('#asientos .seat').forEach(s=>s.classList.remove('dim','on','busy','done'));
+  $('#cuerdas').innerHTML='';
+  centro('CONSEJO EN ESPERA','12 arquetipos','');
+}
+function cuerda(idA, idB, tipo){
+  const a = porId(idA), b = porId(idB);
+  if(!a||!b||!a._x||!b._x) return;
+  const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+  const mx=(a._x+b._x)/2, my=(a._y+b._y)/2;
+  const cx = 200 + (mx-200)*0.25, cy = 200 + (my-200)*0.25;
+  p.setAttribute('d','M '+a._x.toFixed(1)+' '+a._y.toFixed(1)+' Q '+cx.toFixed(1)+' '+cy.toFixed(1)+' '+b._x.toFixed(1)+' '+b._y.toFixed(1));
+  p.setAttribute('class','chord '+tipo);
+  $('#cuerdas').appendChild(p);
+  requestAnimationFrame(()=>p.classList.add('show'));
+}
+
+/* ---------- 5. Clientes de API ---------- */
+async function openai(messages, {temp=0.8, max=800, json=true}={}){
+  if(!CFG.key) throw new Error('Falta la clave de OpenAI. Ábrela en «Claves API».');
+  const r = await fetch('https://api.openai.com/v1/chat/completions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+CFG.key},
+    body: JSON.stringify({
+      model: CFG.model || 'gpt-4o-mini',
+      messages, temperature: temp, max_tokens: max,
+      ...(json?{response_format:{type:'json_object'}}:{})
+    })
+  });
+  if(!r.ok){
+    let det=''; try{ det = (await r.json()).error?.message || ''; }catch(e){}
+    throw new Error('OpenAI '+r.status+(det?': '+det:''));
+  }
+  const d = await r.json();
+  uso.in += d.usage?.prompt_tokens||0; uso.out += d.usage?.completion_tokens||0; uso.llamadas++;
+  pintarUso();
+  const txt = d.choices[0].message.content.trim();
+  if(!json) return txt;
+  try{ return JSON.parse(txt.replace(/^```json|^```|```$/g,'').trim()); }
+  catch(e){ throw new Error('Respuesta no interpretable como JSON'); }
+}
+
+async function tavily(query, max_results=4){
+  const r = await fetch('https://api.tavily.com/search',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+CFG.tav},
+    body: JSON.stringify({query, max_results, search_depth:'basic', topic:'general', include_answer:true})
+  });
+  if(!r.ok) throw new Error('Tavily '+r.status);
+  return r.json();
+}
+
+/* ---------- 6. Prompts ---------- */
+const fichaDe = a => a.nombre+' ['+a.id+'] — lente: '+a.estilo+'; pregunta firma: "'+a.pregunta+'"; punto ciego: '+a.ciego;
+
+function sistemaMiembro(a, pares, idioma, diablo, evid){
+  return [
+    'Eres '+a.nombre+', miembro del Consejo de Consciencia.',
+    'Tu lente: '+a.estilo+'. Tu pregunta firma: "'+a.pregunta+'". Tu punto ciego reconocido: '+a.ciego+'.',
+    'Hablas SOLO desde tu lente. Tu voz debe ser reconocible sin etiqueta: vocabulario, ritmo y criterios propios de tu forma de pensar.',
+    'También están en la mesa:\n'+pares.map(p=>'· '+fichaDe(p)).join('\n'),
+    'Regla innegociable del consejo: debes estar en desacuerdo sustantivo con al menos un miembro concreto sobre algo real, no sobre matices de redacción. El acuerdo es barato; la tensión productiva es lo valioso.',
+    diablo?'MODO ABOGADO DEL DIABLO: argumenta CONTRA lo que resulte más intuitivo en esta pregunta, sin caer en el absurdo.':'',
+    evid?'Dispones de un dossier de evidencia web. Cítalo como [F1], [F2]… cuando lo uses; si contradice tu intuición, dilo.':'',
+    'Profundidad sobre extensión: frases cortas, cargadas, sin relleno ni fórmulas de cortesía.',
+    'Escribe en '+idioma+'.',
+    'Responde SOLO con un objeto JSON con esta forma exacta:',
+    '{"posicion":"una sola frase con tu postura","razonamiento":"2-4 frases desde tu lente","riesgo":"el peligro que los demás pueden no ver","insight":"algo no obvio que emerge de tu marco","desacuerdo":{"con":"id de otro miembro","sobre":"en qué discrepas, en una frase"}}'
+  ].filter(Boolean).join('\n\n');
+}
+
+/* ---------- 7. Orquestación ---------- */
+async function convocar(){
+  const pregunta = $('#pregunta').value.trim();
+  if(!pregunta){ $('#pregunta').focus(); return; }
+  if(!CFG.key){ $('#dlgClaves').showModal(); return; }
+
+  abortando = false;
+  uso = {in:0,out:0,llamadas:0}; pintarUso();
+  $('#btnConvocar').disabled = true; $('#btnDetener').hidden = false;
+  $('#salida').innerHTML = '';
+  resetMesa();
+
+  const opts = {
+    modo: $('#modo').value,
+    idioma: $('#idioma').value,
+    rondas: $('#opRondas').checked,
+    diablo: $('#opDiablo').checked,
+    anonimo: $('#opAnonimo').checked,
+    silencio: $('#opSilencio').checked,
+    afilar: $('#opAfilar').checked,
+    cqs: $('#opCQS').checked,
+    tav: $('#opTavily').checked
+  };
+  const n = opts.modo==='rapido'?3:opts.modo==='profundo'?6:5;
+
+  sesion = {id:'s'+Date.now(), fecha:new Date().toISOString(), pregunta, opts, evidencia:null,
+            miembros:[], ronda1:[], ronda2:[], sintesis:null, cqs:null};
+
+  try{
+    /* --- evidencia --- */
+    if(opts.tav){
+      if(!CFG.tav) { log('Sin clave de Tavily: el consejo delibera sin dossier.', true); }
+      else await fase0Evidencia(pregunta, opts);
+    }
+
+    /* --- Fase 1: convocatoria --- */
+    centro('FASE 1','Convocatoria','seleccionando voces');
+    log('Fase 1 · seleccionando la composición del consejo');
+    const sel = await seleccionar(pregunta, n, opts);
+    if(abortando) return;
+
+    if(sel.trivial && $('#seleccion').value==='auto'){
+      const seguir = await avisoTrivial(sel.motivo || '');
+      if(seguir === 'cancelar'){ throw {leve:true}; }
+      if(seguir === 'contraste'){ sel.miembros = sel.miembros.slice(0,2); }
+    }
+
+    sesion.miembros = sel.miembros;
+    sesion.razonSeleccion = sel.razon;
+    sesion.tipo = sel.tipo;
+
+    $$('#asientos .seat').forEach(s=>{
+      s.classList.add(sel.miembros.includes(s.dataset.id)?'on':'dim');
+    });
+    pintarConvocatoria(sel, opts);
+
+    /* --- Fase 2: deliberación --- */
+    centro('FASE 2','Deliberación','ronda 1 · posiciones');
+    log('Fase 2 · '+sel.miembros.length+' miembros deliberan en paralelo');
+    await fase2Ronda1(pregunta, sel.miembros, opts);
+    if(abortando) return;
+
+    if(opts.afilar && sesion.ronda1.length>2) await afilarTensiones(pregunta, opts);
+    if(abortando) return;
+
+    if(opts.rondas){
+      centro('FASE 2','Deliberación','ronda 2 · réplicas');
+      log('Ronda 2 · réplicas cruzadas y posiciones revisadas');
+      await fase2Ronda2(pregunta, opts);
+      if(abortando) return;
+    }
+
+    dibujarTensiones();
+
+    /* --- Fase 3: síntesis --- */
+    centro('FASE 3','Síntesis','integrando');
+    log('Fase 3 · síntesis del consejo');
+    await fase3Sintesis(pregunta, opts);
+    if(abortando) return;
+
+    if(opts.cqs){ log('Puntuando la calidad de la deliberación'); await puntuar(pregunta, opts); }
+
+    centro('CONSEJO CERRADO', (sesion.cqs? 'CQS '+sesion.cqs.total.toFixed(1) : sesion.miembros.length+' voces'), sesion.sintesis?.confianza? 'confianza '+sesion.sintesis.confianza.toLowerCase():'');
+    pintarAcciones();
+    guardarSesion(sesion);
+    log('Sesión cerrada y guardada');
+
+  }catch(e){
+    if(!e || !e.leve){
+      console.error(e);
+      log(e.message || 'Error inesperado', true);
+      $('#salida').insertAdjacentHTML('afterbegin',
+        '<div class="aviso error" style="margin-top:24px"><p><b>El consejo no pudo cerrar la deliberación.</b> '+esc(e.message||'')+'</p>'+
+        '<p style="font-size:.9rem;color:var(--ink-2)">Comprueba la clave en «Claves API», que el modelo exista en tu cuenta y que haya crédito disponible. Después vuelve a convocar.</p></div>');
+    }
+  }finally{
+    $('#btnConvocar').disabled = false; $('#btnDetener').hidden = true;
+  }
+}
+
+/* --- Fase 0: evidencia con Tavily --- */
+async function fase0Evidencia(pregunta, opts){
+  centro('FASE 0','Documentación','buscando evidencia');
+  log('Generando consultas de búsqueda');
+  const q = await openai([
+    {role:'system',content:'Generas consultas de búsqueda web. Responde SOLO JSON: {"consultas":["...","..."]}'},
+    {role:'user',content:'Pregunta sometida a un consejo deliberativo:\n"'+pregunta+'"\n\nDevuelve 2 consultas de búsqueda cortas y factuales (no opinables) que aporten datos, precedentes o cifras útiles para deliberar. En el idioma más probable de las fuentes.'}
+  ],{temp:0.3,max:200});
+
+  const fuentes = [];
+  for(const c of (q.consultas||[]).slice(0,3)){
+    try{
+      log('Tavily: ' + c);
+      const r = await tavily(c);
+      (r.results||[]).forEach(x=>fuentes.push({titulo:x.title,url:x.url,extracto:(x.content||'').slice(0,600)}));
+      if(r.answer) fuentes.push({titulo:'Resumen Tavily · '+c, url:'', extracto:r.answer.slice(0,600)});
+    }catch(e){ log('Búsqueda fallida: '+e.message, true); }
+  }
+  if(!fuentes.length) return;
+  sesion.evidencia = fuentes.slice(0,8).map((f,i)=>({...f, ref:'F'+(i+1)}));
+  log('Dossier con '+sesion.evidencia.length+' fuentes');
+  pintarEvidencia();
+}
+const dossier = () => !sesion.evidencia ? '' :
+  'DOSSIER DE EVIDENCIA:\n' + sesion.evidencia.map(f=>'['+f.ref+'] '+f.titulo+(f.url?' ('+f.url+')':'')+'\n'+f.extracto).join('\n\n');
+
+/* --- Fase 1: selección --- */
+async function seleccionar(pregunta, n, opts){
+  if($('#seleccion').value==='manual'){
+    const ids = $$('#gridArq input:checked').map(i=>i.value);
+    if(!ids.length) throw new Error('Selección manual activa pero sin miembros marcados.');
+    return {miembros:ids, razon:'Composición elegida a mano.', tipo:'manual', trivial:false};
+  }
+  const j = await openai([
+    {role:'system',content:'Compones consejos deliberativos. Responde SOLO con JSON.'},
+    {role:'user',content:
+      'Arquetipos disponibles:\n'+todos().map(a=>'· '+fichaDe(a)).join('\n')+
+      '\n\nPlantillas de composición según tipo de pregunta:\n'+
+      Object.entries(PLANTILLAS).map(([k,v])=>'· '+k+': '+v.join(', ')).join('\n')+
+      '\n\nPregunta: "'+pregunta+'"\n\n'+
+      'Elige EXACTAMENTE '+n+' miembros cuyas perspectivas vayan a CHOCAR de verdad sobre esta pregunta. Parte de la plantilla más cercana y adáptala; el objetivo es el desacuerdo productivo, no el consenso. '+
+      'Marca trivial=true solo si la pregunta es puramente factual, de respuesta clara, o de baja consecuencia.\n'+
+      'JSON: {"tipo":"etiqueta del tipo de pregunta","miembros":["id","id"],"razon":"por qué esta mezcla y qué tensión clave se espera, 1-2 frases en '+opts.idioma+'","trivial":false,"motivo":"si trivial, por qué"}'}
+  ],{temp:0.5,max:400});
+
+  let ids = (j.miembros||[]).filter(id=>porId(id));
+  if(ids.length < Math.min(3,n)){
+    ids = PLANTILLAS.negocio.slice(0,n);
+    j.razon = 'Composición por defecto (la selección automática no devolvió una mesa válida).';
+  }
+  return {miembros:ids.slice(0,n), razon:j.razon, tipo:j.tipo, trivial:!!j.trivial, motivo:j.motivo};
+}
+
+function avisoTrivial(motivo){
+  return new Promise(res=>{
+    const html = '<div class="aviso" id="avisoTrivial"><p><b>Esta pregunta puede no necesitar un consejo entero.</b> '+esc(motivo)+'</p>'+
+      '<p style="font-size:.92rem;color:var(--ink-2)">El consejo rinde cuando hay incertidumbre real, compromisos entre criterios y consecuencias apreciables.</p>'+
+      '<div class="acciones"><button class="ghost" data-r="contraste">Contraste rápido de 2 perspectivas</button>'+
+      '<button class="ghost" data-r="seguir">Convocar igualmente</button>'+
+      '<button class="ghost" data-r="cancelar">Reformular la pregunta</button></div></div>';
+    $('#salida').insertAdjacentHTML('afterbegin', html);
+    $('#avisoTrivial').addEventListener('click', e=>{
+      const b = e.target.closest('button[data-r]'); if(!b) return;
+      $('#avisoTrivial').remove(); res(b.dataset.r);
+    });
+  });
+}
+
+/* --- Fase 2, ronda 1 --- */
+async function fase2Ronda1(pregunta, ids, opts){
+  const objs = ids.map(porId);
+  const tareas = objs.map(async a=>{
+    estadoAsiento(a.id,'busy');
+    const pares = objs.filter(o=>o.id!==a.id);
+    const msgs = [
+      {role:'system',content:sistemaMiembro(a,pares,opts.idioma,opts.diablo,!!sesion.evidencia)},
+      {role:'user',content:(sesion.evidencia?dossier()+'\n\n':'')+'PREGUNTA ANTE EL CONSEJO:\n'+pregunta}
+    ];
+    try{
+      const j = await openai(msgs,{temp:0.95,max:600});
+      const item = {id:a.id, ...j};
+      sesion.ronda1.push(item);
+      estadoAsiento(a.id,'done');
+      log(a.nombre+' ha intervenido');
+      if(!opts.silencio) pintarMiembro(item, opts);
+      centro('FASE 2','Deliberación', sesion.ronda1.length+'/'+ids.length+' intervenciones');
+    }catch(e){
+      estadoAsiento(a.id,'on');
+      log(a.nombre+': '+e.message, true);
+    }
+  });
+  await Promise.all(tareas);
+  sesion.ronda1.sort((x,y)=>ids.indexOf(x.id)-ids.indexOf(y.id));
+  if(!sesion.ronda1.length) throw new Error('Ningún miembro pudo intervenir.');
+}
+
+/* --- Afilar tensiones (regla: si todos coinciden, el consejo ha fallado) --- */
+async function afilarTensiones(pregunta, opts){
+  const j = await openai([
+    {role:'system',content:'Auditas la diversidad cognitiva de una deliberación. Responde SOLO JSON.'},
+    {role:'user',content:'Posiciones:\n'+sesion.ronda1.map(m=>'['+m.id+'] '+m.posicion+' // '+m.razonamiento).join('\n')+
+      '\n\nIdentifica pares cuyas posiciones sean sustancialmente redundantes (lo mismo con otras palabras). Máximo 2 pares. Si todas son genuinamente distintas, devuelve lista vacía.\n'+
+      'JSON: {"pares":[{"mantener":"id","reformular":"id","motivo":"en qué se solapan"}]}'}
+  ],{temp:0.2,max:300});
+
+  for(const p of (j.pares||[]).slice(0,2)){
+    const a = porId(p.reformular), base = sesion.ronda1.find(m=>m.id===p.mantener);
+    const idx = sesion.ronda1.findIndex(m=>m.id===p.reformular);
+    if(!a || !base || idx<0) continue;
+    log('Afilando: '+a.nombre+' se solapa con '+porId(p.mantener).nombre);
+    estadoAsiento(a.id,'busy');
+    try{
+      const objs = sesion.miembros.map(porId);
+      const nuevo = await openai([
+        {role:'system',content:sistemaMiembro(a,objs.filter(o=>o.id!==a.id),opts.idioma,opts.diablo,!!sesion.evidencia)},
+        {role:'user',content:'PREGUNTA:\n'+pregunta+'\n\nTu primera intervención se solapaba con la de '+porId(p.mantener).nombre+' ('+esc(p.motivo||'')+'):\n"'+base.posicion+'"\n\nVuelve a intervenir marcando la diferencia real que impone tu lente. No repitas su marco: si compartes conclusión, discrepa en el camino, en el riesgo o en el criterio de decisión.'}
+      ],{temp:1.0,max:600});
+      sesion.ronda1[idx] = {id:a.id, ...nuevo, afilado:true};
+      if(!opts.silencio){ $('#m-'+a.id)?.remove(); pintarMiembro(sesion.ronda1[idx], opts, true); }
+    }catch(e){ log('No se pudo afilar '+a.nombre+': '+e.message, true); }
+    estadoAsiento(a.id,'done');
+  }
+}
+
+/* --- Fase 2, ronda 2 --- */
+async function fase2Ronda2(pregunta, opts){
+  const transcripcion = sesion.ronda1.map(m=>'['+m.id+'] '+etiqueta(m.id,opts)+': '+m.posicion+' — '+m.razonamiento+' (riesgo: '+m.riesgo+')').join('\n');
+  if(!opts.silencio) $('#salida').insertAdjacentHTML('beforeend', faseHead('Ronda 2','Réplicas y posiciones revisadas'));
+  for(const m of sesion.ronda1){
+    const a = porId(m.id); if(!a) continue;
+    estadoAsiento(a.id,'busy');
+    try{
+      const j = await openai([
+        {role:'system',content:sistemaMiembro(a,sesion.miembros.filter(i=>i!==a.id).map(porId),opts.idioma,opts.diablo,!!sesion.evidencia)},
+        {role:'user',content:'PREGUNTA:\n'+pregunta+'\n\nPOSICIONES DE LA RONDA 1:\n'+transcripcion+
+          '\n\nResponde al miembro con quien más discrepes: ataca su argumento más fuerte, no el más débil. Después revisa tu propia posición con honestidad: si su argumento te ha movido, dilo; si no, di por qué no.\n'+
+          'JSON: {"replicaA":"id del miembro","replica":"2-3 frases","posicionRevisada":"tu posición ahora, una frase","cambio":true}'}
+      ],{temp:0.85,max:600});
+      const item = {id:a.id, ...j};
+      sesion.ronda2.push(item);
+      if(!opts.silencio) pintarReplica(item, opts);
+      log(a.nombre+' replica a '+(porId(j.replicaA)?.nombre||j.replicaA));
+    }catch(e){ log(a.nombre+' (ronda 2): '+e.message, true); }
+    estadoAsiento(a.id,'done');
+  }
+}
+
+/* --- Fase 3: síntesis --- */
+async function fase3Sintesis(pregunta, opts){
+  const t1 = sesion.ronda1.map(m=>'['+m.id+'] '+porId(m.id).nombre+'\nPosición: '+m.posicion+'\nRazonamiento: '+m.razonamiento+'\nRiesgo: '+m.riesgo+'\nInsight: '+m.insight+'\nDiscrepa de '+(m.desacuerdo?.con||'—')+': '+(m.desacuerdo?.sobre||'')).join('\n\n');
+  const t2 = sesion.ronda2.length ? '\n\nRONDA 2:\n'+sesion.ronda2.map(m=>'['+m.id+'] réplica a '+m.replicaA+': '+m.replica+'\nPosición revisada: '+m.posicionRevisada).join('\n\n') : '';
+
+  const j = await openai([
+    {role:'system',content:
+      'Eres la síntesis del Consejo de Consciencia. Integras, no resumes: no listes lo que dijo cada uno. '+
+      'La "tensión central" es la parte más importante: nombra el compromiso real al que se enfrenta quien pregunta, el que no se resuelve fácil. '+
+      'El "punto ciego" es lo que NINGÚN miembro abordó: la pregunta detrás de la pregunta. '+
+      'El camino recomendado debe respetar la tensión en lugar de ignorarla. La pregunta final debe ser genuinamente inquietante, no genérica. '+
+      'Escribe en '+opts.idioma+'. Responde SOLO con JSON.'},
+    {role:'user',content:(sesion.evidencia?dossier()+'\n\n':'')+'PREGUNTA:\n'+pregunta+'\n\nDELIBERACIÓN:\n'+t1+t2+
+      '\n\nJSON: {"convergencia":{"texto":"dónde coincidieron 3+ miembros y por qué es señal de alta confianza","miembros":["id","id"]},'+
+      '"tension":"la discrepancia central que no se resuelve","puntoCiego":"lo que nadie abordó",'+
+      '"camino":"recomendación accionable que respeta la tensión","confianza":"Alta|Media|Baja","pregunta":"una pregunta para seguir pensando"}'}
+  ],{temp:0.5,max:900});
+
+  sesion.sintesis = j;
+  pintarSintesis(j, opts);
+  if(opts.anonimo) revelarIdentidades(opts);
+  if(j.convergencia?.miembros?.length>1){
+    const ms = j.convergencia.miembros.filter(porId);
+    for(let i=0;i<ms.length-1;i++) cuerda(ms[i],ms[i+1],'acuerdo');
+  }
+}
+
+/* --- Puntuación CQS --- */
+async function puntuar(pregunta, opts){
+  const j = await openai([
+    {role:'system',content:'Evalúas la calidad de una deliberación multiperspectiva. Eres exigente: un 5 es excepcional. Responde SOLO JSON.'},
+    {role:'user',content:'PREGUNTA: '+pregunta+'\n\nPOSICIONES:\n'+sesion.ronda1.map(m=>'['+m.id+'] '+m.posicion+' | '+m.razonamiento).join('\n')+
+      '\n\nSÍNTESIS:\n'+JSON.stringify(sesion.sintesis)+
+      '\n\nPuntúa de 1 a 5: diversidad (¿de verdad diferían?), tension (¿fue iluminadora la discrepancia central?), puntoCiego (¿reveló la síntesis algo que ningún miembro vio?), accionabilidad (¿es concreto el camino?).\n'+
+      'JSON: {"diversidad":3,"tension":3,"puntoCiego":3,"accionabilidad":3,"comentario":"una frase en '+opts.idioma+'"}'}
+  ],{temp:0.2,max:300});
+  const total = j.diversidad*0.25 + j.tension*0.30 + j.puntoCiego*0.25 + j.accionabilidad*0.20;
+  sesion.cqs = {...j, total};
+  pintarCQS(sesion.cqs);
+}
+
+/* ---------- 8. Pintado ---------- */
+const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function etiqueta(id, opts){
+  if(!opts.anonimo) return porId(id)?.nombre || id;
+  const i = sesion.miembros.indexOf(id);
+  return 'Miembro '+(i>=0?i+1:'?');
+}
+const faseHead = (n,t) => '<div class="fase"><div class="fase-head"><span class="n">'+esc(n)+'</span><h2>'+esc(t)+'</h2></div></div>';
+
+function pintarConvocatoria(sel, opts){
+  const lista = sel.miembros.map(id=>{
+    const a = porId(id);
+    return '<li><b>'+esc(etiqueta(id,opts))+'</b>'+(opts.anonimo?'':' — <span style="color:var(--ink-2)">'+esc(a.estilo)+'</span>')+'</li>';
+  }).join('');
+  $('#salida').insertAdjacentHTML('beforeend',
+    '<div class="fase"><div class="fase-head"><span class="n">FASE 1</span><h2>Convocatoria</h2></div>'+
+    '<div class="card"><p style="margin:0 0 12px"><b>La pregunta:</b> '+esc(sesion.pregunta)+'</p>'+
+    (sel.tipo?'<p class="eyebrow" style="margin:0 0 8px">Tipo de pregunta · '+esc(sel.tipo)+'</p>':'')+
+    '<ul style="margin:0 0 12px;padding-left:20px">'+lista+'</ul>'+
+    '<p style="margin:0;color:var(--ink-2);font-size:.95rem">'+esc(sel.razon||'')+'</p></div></div>'+
+    (opts.silencio?'':faseHead('FASE 2','Deliberación')));
+}
+
+function pintarEvidencia(){
+  $('#salida').insertAdjacentHTML('beforeend',
+    '<div class="fase"><div class="fase-head"><span class="n">FASE 0</span><h2>Dossier de evidencia</h2></div>'+
+    '<div class="card"><ul class="evidencia" style="margin:0;padding-left:18px">'+
+    sesion.evidencia.map(f=>'<li><span class="f">['+f.ref+']</span>'+(f.url?'<a href="'+esc(f.url)+'" target="_blank" rel="noopener">'+esc(f.titulo)+'</a>':'<b>'+esc(f.titulo)+'</b>')+'</li>').join('')+
+    '</ul></div></div>');
+}
+
+function pintarMiembro(m, opts, afilado){
+  const a = porId(m.id);
+  const cont = $$('#salida .fase').pop();
+  const html =
+    '<article class="miembro" id="m-'+m.id+'">'+
+      '<header><h3>'+esc(etiqueta(m.id,opts))+'</h3>'+
+      (opts.anonimo?'':'<span class="lente">'+esc(a.estilo)+'</span>')+
+      (afilado?'<span class="badge cambio">Posición afilada</span>':'')+'</header>'+
+      '<p class="posicion">'+esc(m.posicion)+'</p>'+
+      '<div class="bloque"><span class="et">Razonamiento</span><p>'+esc(m.razonamiento)+'</p></div>'+
+      '<div class="bloque riesgo"><span class="et">Riesgo que ve</span><p>'+esc(m.riesgo)+'</p></div>'+
+      '<div class="bloque insight"><span class="et">Insight inesperado</span><p>'+esc(m.insight)+'</p></div>'+
+      (m.desacuerdo?.con ? '<div class="desacuerdo">Discrepa de <b>'+esc(etiqueta(m.desacuerdo.con,opts))+'</b>: '+esc(m.desacuerdo.sobre)+'</div>':'')+
+    '</article>';
+  cont.insertAdjacentHTML('beforeend', html);
+}
+
+function pintarReplica(m, opts){
+  const cont = $$('#salida .fase').pop();
+  cont.insertAdjacentHTML('beforeend',
+    '<article class="miembro">'+
+      '<header><h3>'+esc(etiqueta(m.id,opts))+'</h3><span class="badge'+(m.cambio?' cambio':'')+'">'+(m.cambio?'Posición revisada':'Se reafirma')+'</span></header>'+
+      '<div class="replica"><span class="et">Réplica a '+esc(etiqueta(m.replicaA,opts))+'</span><p>'+esc(m.replica)+'</p></div>'+
+      '<div class="bloque"><span class="et">Posición tras la réplica</span><p style="color:var(--ink);font-size:1.02rem">'+esc(m.posicionRevisada)+'</p></div>'+
+    '</article>');
+}
+
+function pintarSintesis(j, opts){
+  const conf = (j.confianza||'Media').toLowerCase();
+  $('#salida').insertAdjacentHTML('beforeend',
+    '<div class="fase" id="faseSintesis"><div class="fase-head"><span class="n">FASE 3</span><h2>Síntesis del consejo</h2></div>'+
+    '<div class="sintesis">'+
+      '<span class="sub">Consejo de Consciencia · '+sesion.miembros.length+' voces</span>'+
+      '<h3>'+esc(sesion.pregunta.slice(0,110))+(sesion.pregunta.length>110?'…':'')+'</h3>'+
+      '<div class="sec"><span class="et">Puntos de convergencia</span><p>'+esc(j.convergencia?.texto||j.convergencia||'')+'</p></div>'+
+      '<div class="sec tension"><span class="et">Tensión central</span><p>'+esc(j.tension)+'</p></div>'+
+      '<div class="sec"><span class="et">El punto ciego</span><p>'+esc(j.puntoCiego)+'</p></div>'+
+      '<div class="sec camino"><span class="et">Camino recomendado</span><p>'+esc(j.camino)+'</p></div>'+
+      '<div class="sec"><span class="confianza '+conf+'"><i></i>Confianza '+esc(j.confianza||'Media')+'</span></div>'+
+      '<div class="pregunta"><span class="et" style="font-family:var(--mono);font-size:.63rem;letter-spacing:.15em;text-transform:uppercase;color:var(--brass-soft);display:block;margin-bottom:5px">Una pregunta con la que quedarse</span><p>'+esc(j.pregunta)+'</p></div>'+
+    '</div></div>');
+}
+
+function pintarCQS(c){
+  const met = (et,v)=>'<div class="met"><span class="et">'+et+'</span><div class="v">'+v.toFixed(1)+'</div><div class="bar"><i style="width:'+(v/5*100)+'%"></i></div></div>';
+  const bajo = c.total<3.0;
+  $('#salida').insertAdjacentHTML('beforeend',
+    '<div class="fase"><div class="fase-head"><span class="n">CALIDAD</span><h2>Council Quality Score</h2></div>'+
+    '<div class="card"><div class="cqs">'+
+      met('Diversidad',c.diversidad)+met('Tensión',c.tension)+met('Punto ciego',c.puntoCiego)+met('Accionabilidad',c.accionabilidad)+
+    '</div><div class="cqs-total"><span class="v'+(bajo?' bajo':'')+'">'+c.total.toFixed(2)+'</span>'+
+    '<span style="color:var(--ink-2);font-size:.95rem">'+esc(c.comentario||'')+'</span></div>'+
+    (bajo?'<p style="margin:12px 0 0;color:var(--carmin);font-size:.92rem">Por debajo de 3,0: merece la pena reconvocar con otra composición o reformular la pregunta.</p>':
+     c.total>=3.5?'<p style="margin:12px 0 0;color:var(--verde);font-size:.92rem">Deliberación sólida (≥ 3,5).</p>':'')+
+    '</div></div>');
+}
+
+function dibujarTensiones(){
+  sesion.ronda1.forEach(m=>{
+    if(m.desacuerdo?.con && sesion.miembros.includes(m.desacuerdo.con)) cuerda(m.id, m.desacuerdo.con, 'tension');
+  });
+  sesion.ronda2.forEach(m=>{
+    if(m.replicaA && sesion.miembros.includes(m.replicaA)) cuerda(m.id, m.replicaA, 'tension');
+  });
+}
+
+function revelarIdentidades(opts){
+  $('#salida').insertAdjacentHTML('beforeend',
+    '<div class="fase"><div class="fase-head"><span class="n">REVELACIÓN</span><h2>Quién hablaba</h2></div>'+
+    '<div class="card"><ul style="margin:0;padding-left:20px">'+
+    sesion.miembros.map((id,i)=>'<li><b>Miembro '+(i+1)+'</b> — '+esc(porId(id).nombre)+' · <span style="color:var(--ink-2)">'+esc(porId(id).estilo)+'</span></li>').join('')+
+    '</ul></div></div>');
+}
+
+function pintarAcciones(){
+  $('#salida').insertAdjacentHTML('beforeend',
+    '<div class="acciones-final">'+
+      '<button class="ghost" id="btnMd">Descargar Markdown</button>'+
+      '<button class="ghost" id="btnJson">Descargar JSON</button>'+
+      '<button class="ghost" id="btnCopiar">Copiar síntesis</button>'+
+      '<button class="ghost" id="btnImprimir">Imprimir / PDF</button>'+
+      '<button class="ghost" id="btnOtra">Reconvocar con otra mesa</button>'+
+    '</div>');
+  $('#btnMd').onclick = ()=>bajar(markdown(sesion), 'concilia-'+sesion.id+'.md','text/markdown');
+  $('#btnJson').onclick = ()=>bajar(JSON.stringify(sesion,null,2),'concilia-'+sesion.id+'.json','application/json');
+  $('#btnCopiar').onclick = async e=>{
+    const s = sesion.sintesis||{};
+    await navigator.clipboard.writeText(
+      'Convergencia: '+(s.convergencia?.texto||'')+'\n\nTensión central: '+s.tension+'\n\nPunto ciego: '+s.puntoCiego+
+      '\n\nCamino recomendado: '+s.camino+'\n\nConfianza: '+s.confianza+'\n\nPregunta para seguir pensando: '+s.pregunta);
+    e.target.textContent='Síntesis copiada'; setTimeout(()=>e.target.textContent='Copiar síntesis',1800);
+  };
+  $('#btnImprimir').onclick = ()=>window.print();
+  $('#btnOtra').onclick = ()=>{ window.scrollTo({top:0,behavior:'smooth'}); $('#seleccion').value='manual'; $('#panelManual').hidden=false; };
+}
+
+function markdown(s){
+  const L=[]; const nm=id=>porId(id)?.nombre||id;
+  L.push('# Consejo de Consciencia — ConcilIA','', '**Pregunta:** '+s.pregunta, '', '_'+new Date(s.fecha).toLocaleString('es-ES')+' · modelo '+(CFG.model)+'_','');
+  if(s.evidencia){ L.push('## Dossier de evidencia',''); s.evidencia.forEach(f=>L.push('- ['+f.ref+'] '+f.titulo+(f.url?' — '+f.url:''))); L.push(''); }
+  L.push('## Fase 1 — Convocatoria','', s.miembros.map(nm).join(' · '), '', s.razonSeleccion||'', '');
+  L.push('## Fase 2 — Deliberación','');
+  s.ronda1.forEach(m=>{
+    L.push('### '+nm(m.id),'', '**Posición:** '+m.posicion,'', '**Razonamiento:** '+m.razonamiento,'',
+           '**Riesgo que ve:** '+m.riesgo,'', '**Insight inesperado:** '+m.insight,'');
+    if(m.desacuerdo?.con) L.push('> Discrepa de '+nm(m.desacuerdo.con)+': '+m.desacuerdo.sobre,'');
+  });
+  if(s.ronda2.length){
+    L.push('## Ronda 2 — Réplicas','');
+    s.ronda2.forEach(m=>L.push('### '+nm(m.id),'', '**Réplica a '+nm(m.replicaA)+':** '+m.replica,'', '**Posición revisada:** '+m.posicionRevisada,''));
+  }
+  if(s.sintesis){
+    const j=s.sintesis;
+    L.push('## Fase 3 — Síntesis','', '**Puntos de convergencia:** '+(j.convergencia?.texto||''),'',
+      '**Tensión central:** '+j.tension,'', '**El punto ciego:** '+j.puntoCiego,'',
+      '**Camino recomendado:** '+j.camino,'', '**Confianza:** '+j.confianza,'',
+      '**Una pregunta con la que quedarse:** '+j.pregunta,'');
+  }
+  if(s.cqs) L.push('## Calidad de la deliberación','', '| Métrica | Valor |','|---|---|',
+    '| Diversidad | '+s.cqs.diversidad+' |','| Tensión | '+s.cqs.tension+' |','| Punto ciego | '+s.cqs.puntoCiego+' |',
+    '| Accionabilidad | '+s.cqs.accionabilidad+' |','| **CQS** | **'+s.cqs.total.toFixed(2)+'** |','', s.cqs.comentario||'','');
+  L.push('---','Generado con ConcilIA. Arquitectura del consejo basada en el skill `consciousness-council` (AHK Strategies, MIT).');
+  return L.join('\n');
+}
+function bajar(txt,nombre,tipo){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([txt],{type:tipo})); a.download=nombre; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+}
+
+/* ---------- 9. Persistencia ---------- */
+let db=null;
+function abrirDB(){
+  return new Promise(res=>{
+    const q = indexedDB.open('concilia',1);
+    q.onupgradeneeded = e => e.target.result.createObjectStore('sesiones',{keyPath:'id'});
+    q.onsuccess = e => { db = e.target.result; res(db); };
+    q.onerror = () => res(null);
+  });
+}
+async function guardarSesion(s){
+  if(!db) await abrirDB(); if(!db) return;
+  db.transaction('sesiones','readwrite').objectStore('sesiones').put(JSON.parse(JSON.stringify(s)));
+}
+async function listarSesiones(){
+  if(!db) await abrirDB(); if(!db) return [];
+  return new Promise(res=>{
+    const q = db.transaction('sesiones').objectStore('sesiones').getAll();
+    q.onsuccess = ()=>res(q.result.sort((a,b)=>b.fecha.localeCompare(a.fecha)));
+    q.onerror = ()=>res([]);
+  });
+}
+async function pintarHistorial(){
+  const ss = await listarSesiones();
+  $('#listaHist').innerHTML = ss.length ? ss.map(s=>
+    '<li><time>'+new Date(s.fecha).toLocaleDateString('es-ES')+'</time><button data-id="'+s.id+'">'+esc(s.pregunta.slice(0,80))+(s.pregunta.length>80?'…':'')+'</button></li>').join('')
+    : '<li class="vacio">Todavía no hay sesiones guardadas.</li>';
+  $$('#listaHist button[data-id]').forEach(b=>b.onclick=async()=>{
+    const s = (await listarSesiones()).find(x=>x.id===b.dataset.id);
+    $('#dlgHistorial').close(); recargar(s);
+  });
+}
+function recargar(s){
+  sesion = s; $('#salida').innerHTML=''; resetMesa();
+  $('#pregunta').value = s.pregunta;
+  const opts = s.opts||{};
+  $$('#asientos .seat').forEach(el=>el.classList.add(s.miembros.includes(el.dataset.id)?'done':'dim'));
+  pintarConvocatoria({miembros:s.miembros, razon:s.razonSeleccion, tipo:s.tipo}, opts);
+  if(s.evidencia) pintarEvidencia();
+  if(!opts.silencio) s.ronda1.forEach(m=>pintarMiembro(m,opts,m.afilado));
+  if(s.ronda2?.length){ $('#salida').insertAdjacentHTML('beforeend', faseHead('Ronda 2','Réplicas y posiciones revisadas')); s.ronda2.forEach(m=>pintarReplica(m,opts)); }
+  if(s.sintesis) pintarSintesis(s.sintesis,opts);
+  if(s.cqs) pintarCQS(s.cqs);
+  dibujarTensiones();
+  centro('SESIÓN RECUPERADA', s.miembros.length+' voces', new Date(s.fecha).toLocaleDateString('es-ES'));
+  pintarAcciones();
+  log('Sesión recuperada del historial');
+}
+
+/* ---------- 10. Arquetipos propios ---------- */
+function pintarArq(){
+  $('#gridArq').innerHTML = todos().map(a=>
+    '<label class="arq"><input type="checkbox" value="'+a.id+'"><span class="sig">'+esc(a.sigla)+'</span>'+
+    '<b>'+esc(a.nombre)+'</b><small>'+esc(a.estilo)+'</small></label>').join('');
+  $$('#gridArq .arq').forEach(l=>{
+    const i = l.querySelector('input');
+    i.onchange = ()=>l.classList.toggle('sel', i.checked);
+  });
+  $('#listaCustom').innerHTML = custom.length
+    ? custom.map(c=>'<div style="display:flex;gap:8px;align-items:baseline;border-bottom:1px solid var(--line-2);padding:5px 0"><b>'+esc(c.nombre)+'</b><small style="color:var(--ink-3);flex:1">'+esc(c.estilo)+'</small><button class="ghost sm" data-del="'+c.id+'">Quitar</button></div>').join('')
+    : '<p class="vacio" style="margin:0">Ninguno todavía.</p>';
+  $$('#listaCustom button[data-del]').forEach(b=>b.onclick=()=>{
+    custom = custom.filter(c=>c.id!==b.dataset.del);
+    localStorage.setItem('concilia_custom', JSON.stringify(custom)); pintarArq();
+  });
+}
+
+/* ---------- 11. Arranque ---------- */
+construirMesa(); pintarArq(); abrirDB();
+
+$('#seleccion').onchange = e => $('#panelManual').hidden = e.target.value!=='manual';
+$('#btnConvocar').onclick = convocar;
+$('#btnDetener').onclick = ()=>{ abortando = true; log('Deliberación detenida por el usuario', true); $('#btnConvocar').disabled=false; $('#btnDetener').hidden=true; };
+
+$('#btnClaves').onclick = ()=>{
+  $('#keyOpenAI').value = CFG.key; $('#keyTavily').value = CFG.tav; $('#modelo').value = CFG.model;
+  $('#dlgClaves').showModal();
+};
+$('#btnGuardarClaves').onclick = ()=>{
+  CFG.key = $('#keyOpenAI').value.trim(); CFG.tav = $('#keyTavily').value.trim(); CFG.model = $('#modelo').value.trim()||'gpt-4o-mini';
+  localStorage.setItem('ia_openai_key',CFG.key); localStorage.setItem('ia_tavily_key',CFG.tav); localStorage.setItem('ia_modelo',CFG.model);
+  $('#dlgClaves').close(); log('Claves guardadas en este navegador');
+};
+$('#btnBorrarClaves').onclick = ()=>{
+  ['ia_openai_key','ia_tavily_key','ia_modelo'].forEach(k=>localStorage.removeItem(k));
+  CFG.key=''; CFG.tav=''; CFG.model='gpt-4o-mini';
+  $('#keyOpenAI').value=''; $('#keyTavily').value=''; $('#modelo').value='gpt-4o-mini';
+  log('Claves borradas');
+};
+$('#btnHistorial').onclick = async()=>{ await pintarHistorial(); $('#dlgHistorial').showModal(); };
+$('#btnCerrarHist').onclick = ()=>$('#dlgHistorial').close();
+$('#btnVaciarHist').onclick = async()=>{
+  if(!db) await abrirDB(); if(!db) return;
+  db.transaction('sesiones','readwrite').objectStore('sesiones').clear();
+  setTimeout(pintarHistorial,150);
+};
+$('#btnAddCustom').onclick = ()=>{
+  const nombre = $('#cName').value.trim(), lente = $('#cLente').value.trim();
+  if(!nombre || !lente){ $('#cName').focus(); return; }
+  const id = 'custom_'+nombre.toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,14)+Date.now().toString().slice(-3);
+  custom.push({id, nombre, sigla:nombre.replace(/^(La|El) /,'').slice(0,3).toUpperCase(),
+    estilo:lente, pregunta:$('#cPregunta').value.trim()||'¿Qué se me escapa desde mi lente?',
+    ciego:$('#cCiego').value.trim()||'Puede aplicar su marco donde no toca'});
+  localStorage.setItem('concilia_custom', JSON.stringify(custom));
+  ['#cName','#cLente','#cPregunta','#cCiego'].forEach(s=>$(s).value='');
+  pintarArq(); log('Arquetipo propio añadido: '+nombre);
+};
+
+$('#pregunta').addEventListener('keydown', e=>{
+  if((e.metaKey||e.ctrlKey) && e.key==='Enter') convocar();
+});
+
+if(!CFG.key) log('Añade tu clave de OpenAI en «Claves API» para empezar.');
+</script>
+</body>
+</html>
