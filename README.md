@@ -45,7 +45,7 @@ El proceso tiene tres fases:
 
 Abre la app, pega tu clave de OpenAI en «Claves API» y convoca. La clave se guarda solo en
 el `localStorage` del navegador y las llamadas van directamente de tu equipo a la API; no
-hay servidor intermedio. Modelo por defecto: `gpt-4o-mini`. Las sesiones se guardan en
+hay servidor intermedio. Modelo por defecto: `gpt-6-luna` (temperatura 1). Las sesiones se guardan en
 IndexedDB y se pueden exportar a Markdown o JSON.
 
 ## Créditos

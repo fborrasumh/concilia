@@ -1,10 +1,68 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<script id="gpt6-luna-shim">
+/* gpt-6-luna: modelo por defecto con temperatura=1 (actualización sep-2026).
+   Adapta las peticiones a la API de OpenAI para la familia gpt-6:
+   temperature=1, max_tokens -> max_completion_tokens (con margen para razonamiento)
+   y reintento automático si la API rechaza algún parámetro. */
+(function(){
+  var NEW='gpt-6-luna', OLD='gpt-4o-mini';
+  try{
+    if(!localStorage.getItem('__gpt6_luna_mig_v1')){
+      for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i), v=localStorage.getItem(k);
+        if(v===OLD||v==='"'+OLD+'"'){ localStorage.setItem(k, v.replace(OLD,NEW)); continue; }
+        if(v && v.length<20000 && v.charAt(0)==='{' && v.indexOf(OLD)>=0){
+          try{ var o=JSON.parse(v), ch=false;
+            for(var p in o){ if(o[p]===OLD){ o[p]=NEW; ch=true; } }
+            if(ch) localStorage.setItem(k, JSON.stringify(o));
+          }catch(e){}
+        }
+      }
+      localStorage.setItem('__gpt6_luna_mig_v1','1');
+    }
+  }catch(e){}
+  var of=window.fetch; if(!of) return;
+  function adapt(url,b){
+    if(!b || typeof b.model!=='string' || !/^gpt-6/.test(b.model)) return false;
+    b.temperature=1;
+    ['top_p','frequency_penalty','presence_penalty','logit_bias','logprobs','top_logprobs'].forEach(function(p){ delete b[p]; });
+    if(/chat\/completions/.test(url) && b.max_tokens!=null){
+      if(b.max_completion_tokens==null) b.max_completion_tokens=Math.min(128000, (+b.max_tokens||0)+6000);
+      delete b.max_tokens;
+    }
+    return true;
+  }
+  window.fetch=function(input,init){
+    var url=typeof input==='string'?input:(input&&input.url)||'';
+    if(!/api\.openai\.com\/v1\/(chat\/completions|responses)/.test(url) || !init || typeof init.body!=='string') return of.apply(this,arguments);
+    var b; try{ b=JSON.parse(init.body); }catch(e){ return of.apply(this,arguments); }
+    if(!adapt(url,b)) return of.apply(this,arguments);
+    var self=this, tries=0;
+    function go(){
+      var ini=Object.assign({},init,{body:JSON.stringify(b)});
+      return of.call(self,input,ini).then(function(r){
+        if(r.status!==400 || tries>=3) return r;
+        return r.clone().json().then(function(j){
+          var err=(j&&j.error)||{}, p=err.param, msg=String(err.message||'');
+          if(!p){ var m=msg.match(/'([a-z_]+)'/); if(m) p=m[1]; }
+          if(p && b.hasOwnProperty(p) && /unsupported|not supported|does not support|only the default/i.test(msg)){
+            delete b[p]; tries++; return go();
+          }
+          return r;
+        },function(){ return r; });
+      });
+    }
+    return go();
+  };
+})();
+</script>
+
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ConcilIA · Consejo de Consciencia</title>
-<meta name="description" content="Deliberación multiperspectiva con 12 arquetipos de pensamiento. Reproduce el skill consciousness-council con la API de OpenAI (gpt-4o-mini) y evidencia web opcional vía Tavily.">
+<meta name="description" content="Deliberación multiperspectiva con 12 arquetipos de pensamiento. Reproduce el skill consciousness-council con la API de OpenAI (gpt-6-luna) y evidencia web opcional vía Tavily.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -377,7 +435,7 @@ dialog::backdrop{background:rgba(18,36,47,.45)}
     <p class="nota">Se guardan solo en el almacenamiento local de este navegador y viajan directamente a OpenAI y Tavily desde tu equipo. No pasan por ningún servidor intermedio.</p>
     <label class="field"><span class="eyebrow">OpenAI · obligatoria</span><input type="password" id="keyOpenAI" placeholder="sk-..." autocomplete="off"></label>
     <label class="field"><span class="eyebrow">Tavily · opcional, para evidencia web</span><input type="password" id="keyTavily" placeholder="tvly-..." autocomplete="off"></label>
-    <label class="field"><span class="eyebrow">Modelo</span><input type="text" id="modelo" placeholder="gpt-4o-mini"></label>
+    <label class="field"><span class="eyebrow">Modelo</span><input type="text" id="modelo" placeholder="gpt-6-luna"></label>
     <div class="cierre">
       <button class="ghost" id="btnBorrarClaves">Borrar claves</button>
       <button class="primary" id="btnGuardarClaves">Guardar</button>
@@ -401,7 +459,7 @@ dialog::backdrop{background:rgba(18,36,47,.45)}
 /* =====================================================================
    ConcilIA — reproducción web del skill "consciousness-council"
    (K-Dense-AI/scientific-agent-skills, commit 72d742e). MIT.
-   Motor: OpenAI Chat Completions (gpt-4o-mini) + Tavily Search opcional.
+   Motor: OpenAI Chat Completions (gpt-6-luna) + Tavily Search opcional.
    ===================================================================== */
 
 const $  = (s,r=document)=>r.querySelector(s);
@@ -453,7 +511,7 @@ const PLANTILLAS = {
 const CFG = {
   key:  localStorage.getItem('ia_openai_key') || '',
   tav:  localStorage.getItem('ia_tavily_key') || '',
-  model:localStorage.getItem('ia_modelo') || 'gpt-4o-mini'
+  model:localStorage.getItem('ia_modelo') || 'gpt-6-luna'
 };
 let custom = JSON.parse(localStorage.getItem('concilia_custom') || '[]');
 let uso = {in:0,out:0,llamadas:0};
@@ -536,7 +594,7 @@ async function openai(messages, {temp=0.8, max=800, json=true}={}){
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+CFG.key},
     body: JSON.stringify({
-      model: CFG.model || 'gpt-4o-mini',
+      model: CFG.model || 'gpt-6-luna',
       messages, temperature: temp, max_tokens: max,
       ...(json?{response_format:{type:'json_object'}}:{})
     })
@@ -1111,14 +1169,14 @@ $('#btnClaves').onclick = ()=>{
   $('#dlgClaves').showModal();
 };
 $('#btnGuardarClaves').onclick = ()=>{
-  CFG.key = $('#keyOpenAI').value.trim(); CFG.tav = $('#keyTavily').value.trim(); CFG.model = $('#modelo').value.trim()||'gpt-4o-mini';
+  CFG.key = $('#keyOpenAI').value.trim(); CFG.tav = $('#keyTavily').value.trim(); CFG.model = $('#modelo').value.trim()||'gpt-6-luna';
   localStorage.setItem('ia_openai_key',CFG.key); localStorage.setItem('ia_tavily_key',CFG.tav); localStorage.setItem('ia_modelo',CFG.model);
   $('#dlgClaves').close(); log('Claves guardadas en este navegador');
 };
 $('#btnBorrarClaves').onclick = ()=>{
   ['ia_openai_key','ia_tavily_key','ia_modelo'].forEach(k=>localStorage.removeItem(k));
-  CFG.key=''; CFG.tav=''; CFG.model='gpt-4o-mini';
-  $('#keyOpenAI').value=''; $('#keyTavily').value=''; $('#modelo').value='gpt-4o-mini';
+  CFG.key=''; CFG.tav=''; CFG.model='gpt-6-luna';
+  $('#keyOpenAI').value=''; $('#keyTavily').value=''; $('#modelo').value='gpt-6-luna';
   log('Claves borradas');
 };
 $('#btnHistorial').onclick = async()=>{ await pintarHistorial(); $('#dlgHistorial').showModal(); };
